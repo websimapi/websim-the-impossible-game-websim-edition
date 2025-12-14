@@ -8,125 +8,151 @@ export const OBS = {
     GAP: 5
 };
 
+// Procedural Patterns
+const PATTERNS = {
+    INTRO: [
+        "........", 
+        "........",
+        "....S...", 
+        ".......S",
+        "S.......",
+        ".....S.."
+    ],
+    EASY: [
+        "........",
+        "....S...",
+        "..S...S.",
+        "...B....",
+        "..B..B..",
+        "........"
+    ],
+    MEDIUM: [
+        "..SS....",
+        ".S.S.S..",
+        ".B.S.B..",
+        ".P.S.P..",
+        "...P.P..",
+        "........",
+        "...GG..."
+    ],
+    HARD: [
+        ".SSS....",
+        "SS.SS...",
+        "B.S.B.S.",
+        "S.P.S.P.",
+        ".G.G.G.",
+        "P.G.P.G."
+    ],
+    INSANE: [
+        "SSS.SSS.",
+        "B.SS.B.S",
+        "PG.PG.PG",
+        "G.S.G.S.",
+        "B.B.B.B."
+    ]
+};
+
 export class Level {
     constructor(groundY) {
         this.groundY = groundY;
         this.tileSize = 40; // Base grid unit
         this.obstacles = [];
-        this.length = 0;
+        this.currentX = 0; // The frontier of generation
         
-        // Generate the "Impossible" level map
-        this.generateLevel();
+        // Initial safe zone - Longer for easier start
+        this.currentX = 500; 
+        this.addRawSegment(".".repeat(30)); 
     }
 
-    generateLevel() {
-        // R = Regular Space, S = Spike, B = Block, P = Platform, G = Gap
-        // Designed to sync with 140BPM approx at specific speed
-        const map = [
-            // Intro
-            ..."...".repeat(5),
-            ..."S...S...S...".split(''),
-            ..."S.S.S.".split(''),
-            ..."BB..BB..".split(''),
-            // Beat drop
-            ..."S.S.S.S.".split(''),
-            ..."B.S.B.S.".split(''),
-            ..."BBB...S...".split(''),
-            // Platforms
-            ..."P...P...P...".split(''),
-            ..."P.S.P.S.P.".split(''),
-            // Tricky part
-            ...".SS..SS..".split(''),
-            ..."B..B..B..".split(''),
-            // The Gap
-            ..."GGGG".split(''), // Big pit
-            ..."...S...".split(''),
-            // Fast section
-            ..."S.S.S.S.S.S.S.".split(''),
-            ..."P.P.P.P.".split(''),
-            ..."B.B.B.B.".split(''),
-            // Technical
-            ..."SS.B.SS.B.".split(''),
-            ..."P..S..P..S..".split(''),
-            ..."BBB.S.BBB.S.".split(''),
-            // Climax
-            ..."S.S.B.B.P.P.S.S.".split(''),
-            ..."GG.P.GG.P.".split(''),
-            ..."S.S.S.S.S.M.S.S.".split(''),
-            // Outro
-            ..."................".split(''),
-            "WIN"
-        ];
+    update(cameraX, width, difficultyScore) {
+        // 1. Generate new chunks if near edge
+        const buffer = 1000;
+        if (this.currentX < cameraX + width + buffer) {
+            this.generateChunk(difficultyScore);
+        }
 
-        let currentX = 500; // Start offset
+        // 2. Cleanup old chunks
+        const removeThreshold = cameraX - 500;
+        if (this.obstacles.length > 0 && this.obstacles[0].x < removeThreshold) {
+            // Remove obstacles that are far behind
+            this.obstacles = this.obstacles.filter(o => o.x >= removeThreshold);
+        }
+    }
 
-        for (let item of map) {
+    generateChunk(difficulty) {
+        // difficulty is essentially current score (distance / 100)
+        let pool = PATTERNS.INTRO;
+        
+        // Progressive difficulty curve
+        if (difficulty > 10) pool = PATTERNS.INTRO.concat(PATTERNS.EASY);
+        if (difficulty > 25) pool = PATTERNS.EASY.concat(PATTERNS.MEDIUM);
+        if (difficulty > 50) pool = PATTERNS.MEDIUM.concat(PATTERNS.HARD);
+        if (difficulty > 100) pool = PATTERNS.HARD.concat(PATTERNS.INSANE);
+
+        // Pick random pattern
+        const pattern = pool[Math.floor(Math.random() * pool.length)];
+        
+        // Add a breather between patterns, shorter as game gets harder
+        let breather = "....";
+        if (difficulty > 50) breather = "..";
+        if (difficulty > 100) breather = ".";
+        
+        this.addRawSegment(breather); 
+        this.addRawSegment(pattern);
+    }
+
+    addRawSegment(mapString) {
+        for (let char of mapString) {
             let type = OBS.EMPTY;
-            if (item === 'S') type = OBS.SPIKE;
-            if (item === 'B') type = OBS.BLOCK;
-            if (item === 'P') type = OBS.PLATFORM_LOW;
-            if (item === 'G') type = OBS.GAP;
-            if (item === 'WIN') {
-                this.finishLineX = currentX;
-                break;
-            }
+            if (char === 'S') type = OBS.SPIKE;
+            if (char === 'B') type = OBS.BLOCK;
+            if (char === 'P') type = OBS.PLATFORM_LOW;
+            if (char === 'G') type = OBS.GAP;
 
             if (type !== OBS.EMPTY) {
-                this.obstacles.push({
+                let obs = {
                     type: type,
-                    x: currentX,
-                    y: 0, // Calculated below
+                    x: this.currentX,
+                    y: 0, 
                     w: this.tileSize,
                     h: this.tileSize,
                     passed: false
-                });
-            }
-            
-            // Advance X
-            currentX += this.tileSize; 
-        }
-        
-        this.totalDistance = currentX;
+                };
 
-        // Finalize Y positions
-        this.obstacles.forEach(obs => {
-            if (obs.type === OBS.BLOCK) obs.y = this.groundY - obs.h;
-            if (obs.type === OBS.SPIKE) {
-                obs.y = this.groundY - obs.h;
-                obs.w = 30; // Spikes are thinner
+                // Finalize Y positions
+                if (obs.type === OBS.BLOCK) obs.y = this.groundY - obs.h;
+                if (obs.type === OBS.SPIKE) {
+                    obs.y = this.groundY - obs.h;
+                    obs.w = 30; // Spikes are thinner
+                }
+                if (obs.type === OBS.PLATFORM_LOW) obs.y = this.groundY - obs.h * 2.5;
+                if (obs.type === OBS.GAP) {
+                    obs.y = this.groundY; // Floor gap
+                    obs.h = 200; // Deep pit
+                }
+
+                this.obstacles.push(obs);
             }
-            if (obs.type === OBS.PLATFORM_LOW) obs.y = this.groundY - obs.h * 2.5;
-            if (obs.type === OBS.GAP) {
-                obs.y = this.groundY; // Floor gap
-                obs.h = 200; // Deep pit
-            }
-        });
+            this.currentX += this.tileSize;
+        }
     }
 
     draw(ctx, cameraX, width) {
         // Draw Floor
-        ctx.fillStyle = "#fff";
-        // Calculate floor segments to draw gapless floor except where gaps exist
         let floorStart = Math.max(0, cameraX - 100);
         let floorEnd = cameraX + width + 100;
         
-        // Find gaps in view
-        let gaps = this.obstacles.filter(o => o.type === OBS.GAP && o.x + o.w > floorStart && o.x < floorEnd);
-        
-        // Draw floor rects skipping gaps
-        let drawCursor = floorStart;
-        
-        // Optimize: Draw one big floor rectangle, then "erase" gaps with black rects? 
-        // Better: Draw floor normally, draw black rects for gaps (since bg is complex, black rect works if bg is dark)
-        // Actually, let's just draw the floor line where there are NO gaps.
-        
+        // Draw floor normally
         ctx.fillStyle = "#eee";
-        ctx.fillRect(floorStart, this.groundY, floorEnd - floorStart, 2); // Thin floor line
+        ctx.fillRect(floorStart, this.groundY, floorEnd - floorStart, 2); 
+        
+        // Find gaps in view to erase floor
+        let gaps = this.obstacles.filter(o => o.type === OBS.GAP && o.x + o.w > floorStart && o.x < floorEnd);
         
         // Draw Gaps (Black out floor)
         ctx.fillStyle = "#050505"; // Match BG
         gaps.forEach(g => {
-            ctx.fillRect(g.x, this.groundY - 1, g.w + 1, 10); // +1 to cover seams
+            ctx.fillRect(g.x, this.groundY - 1, g.w + 1, 10); 
         });
 
         // Draw Obstacles
@@ -160,18 +186,6 @@ export class Level {
             
             ctx.shadowBlur = 0;
         });
-
-        // Draw Finish Line
-        if (this.finishLineX > cameraX && this.finishLineX < cameraX + width) {
-             const fx = this.finishLineX - cameraX;
-             ctx.fillStyle = "white";
-             ctx.fillRect(fx, this.groundY - 200, 10, 200);
-             // Checkered flag effect
-             for(let i=0; i<10; i++) {
-                 ctx.fillStyle = i%2===0 ? "black" : "white";
-                 ctx.fillRect(fx, this.groundY - 200 + (i*20), 10, 20);
-             }
-        }
     }
 
     checkCollision(player) {

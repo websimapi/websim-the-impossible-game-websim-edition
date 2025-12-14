@@ -5,16 +5,17 @@ export class Player {
         this.size = 30;
         this.color = color;
 
-        this.reset();
-
         // Physics constants
         // Tuned for 140 BPM rhythm
-        this.speed = 8.5; 
+        this.baseSpeed = 4.5; // Easier start
+        this.speed = this.baseSpeed;
         this.jumpForce = -13; 
         this.gravity = 0.65;
 
         this.trail = [];
         this.maxTrail = 10;
+        
+        this.reset();
     }
 
     reset() {
@@ -25,6 +26,7 @@ export class Player {
         this.rotation = 0;
         this.isDead = false;
         this.trail = [];
+        this.speed = this.baseSpeed;
     }
 
     jump() {

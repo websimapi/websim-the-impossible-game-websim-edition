@@ -18,8 +18,8 @@ resize();
 
 // UI Elements
 const uiAttempt = document.getElementById('attempt-count');
-const uiPercent = document.getElementById('progress-percent');
-const uiBest = document.getElementById('best-percent');
+const uiScore = document.getElementById('score-display');
+const uiBest = document.getElementById('best-score');
 const startScreen = document.getElementById('start-screen');
 const pauseMenu = document.getElementById('pause-menu');
 const msgOverlay = document.getElementById('message-overlay');
@@ -52,7 +52,7 @@ let shakeTime = 0;
 
 // Stats
 let attempts = 1;
-let bestPercent = 0;
+let bestScore = 0;
 let startTime = 0;
 
 // Initialization
@@ -71,7 +71,7 @@ async function init() {
 function resetGame(fullReset = false) {
     if (fullReset) {
         attempts = 1;
-        bestPercent = 0;
+        bestScore = 0;
     } else {
         attempts++;
     }
@@ -118,26 +118,7 @@ function die() {
     }, 1000);
 }
 
-function win() {
-    currentState = STATE.WIN;
-    audio.stopBgm();
-    audio.playSfx('win');
-    createExplosion(player.x, player.y, "#fff", 100);
-    
-    // Show win screen
-    const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-    document.getElementById('msg-title').innerText = "LEVEL COMPLETE!";
-    document.getElementById('msg-title').style.color = "#00ff00";
-    document.getElementById('msg-stats').innerHTML = `
-        Attempts: ${attempts}<br>
-        Time: ${duration}s<br>
-        Status: LEGEND
-    `;
-    msgOverlay.classList.remove('hidden');
-    msgOverlay.classList.add('visible');
-    
-    msgBtn.onclick = startGame;
-}
+// win() removed for infinite mode
 
 // Input Handling
 function handleInput(e) {
@@ -239,18 +220,17 @@ function drawParticles(cameraX) {
 function updateUI() {
     uiAttempt.innerText = attempts;
     
-    if (!level) return;
+    if (!player) return;
     
-    // Calculate percent based on x position vs total distance
-    let pct = Math.floor((player.x / level.totalDistance) * 100);
-    if (pct < 0) pct = 0;
-    if (pct > 100) pct = 100;
+    // Calculate score based on distance
+    let score = Math.floor(player.x / 100);
+    if (score < 0) score = 0;
     
-    uiPercent.innerText = pct;
+    uiScore.innerText = score;
     
-    if (pct > bestPercent) {
-        bestPercent = pct;
-        uiBest.innerText = bestPercent;
+    if (score > bestScore) {
+        bestScore = score;
+        uiBest.innerText = bestScore;
     }
 }
 
@@ -296,6 +276,20 @@ function loop() {
 
         // Updates
         if (currentState === STATE.PLAYING) {
+            
+            // Speed progression
+            let score = Math.floor(player.x / 100);
+            
+            // Increase speed slightly every 100m
+            // Base 4.5. Cap at 13.0
+            // Slower ramp up for infinite play
+            let targetSpeed = 4.5 + (score * 0.04);
+            if (targetSpeed > 13.0) targetSpeed = 13.0;
+            player.speed = targetSpeed;
+
+            // Generate level
+            level.update(cameraX, width, score);
+
             player.update();
             updateParticles();
             
@@ -303,10 +297,6 @@ function loop() {
                 die();
             }
             
-            // Check win
-            if (player.x > level.totalDistance) {
-                win();
-            }
             updateUI();
         } else if (currentState === STATE.GAMEOVER) {
             updateParticles(); // Keep particles moving
