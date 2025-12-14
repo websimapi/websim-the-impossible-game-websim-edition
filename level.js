@@ -13,10 +13,12 @@ const PATTERNS = {
     EASY: [
         "........",
         "....S...",
-        "..S...S.",
+        "........",
+        "..S.....",
+        "........",
         "...B....",
-        "..B..B..",
-        "...P.P.."
+        "........",
+        "...P...."
     ],
     MEDIUM: [
         "..SS....",
@@ -52,12 +54,12 @@ export class Level {
         
         // Initial safe zone
         this.currentX = 500; // Start offset
-        this.addRawSegment(".".repeat(20)); // Safe start
+        this.addRawSegment(".".repeat(50)); // Longer safe start
     }
 
     update(cameraX, width, difficultyScore) {
         // 1. Generate new chunks if near edge
-        const buffer = 1000;
+        const buffer = 1500; // Generate further ahead
         if (this.currentX < cameraX + width + buffer) {
             this.generateChunk(difficultyScore);
         }
@@ -71,12 +73,13 @@ export class Level {
     }
 
     generateChunk(difficulty) {
-        // Difficulty 0-100+
+        // Difficulty (distance in meters)
         let pool = PATTERNS.EASY;
         
-        if (difficulty > 500) pool = pool.concat(PATTERNS.MEDIUM);
-        if (difficulty > 1500) pool = PATTERNS.MEDIUM.concat(PATTERNS.HARD);
-        if (difficulty > 3000) pool = PATTERNS.HARD.concat(PATTERNS.INSANE);
+        // Progression slowed down significantly
+        if (difficulty > 200) pool = pool.concat(PATTERNS.MEDIUM);
+        if (difficulty > 1000) pool = PATTERNS.MEDIUM.concat(PATTERNS.HARD);
+        if (difficulty > 2500) pool = PATTERNS.HARD.concat(PATTERNS.INSANE);
 
         // Pick random pattern
         const pattern = pool[Math.floor(Math.random() * pool.length)];

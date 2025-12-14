@@ -6,11 +6,11 @@ export class Player {
         this.color = color;
 
         // Physics constants
-        // Tuned for 140 BPM rhythm
-        this.baseSpeed = 6.0; // Slower start
+        // Tuned for better playability
+        this.baseSpeed = 5.0; 
         this.speed = this.baseSpeed;
-        this.jumpForce = -13; 
-        this.gravity = 0.65;
+        this.jumpForce = -11.5; 
+        this.gravity = 0.55;
 
         this.trail = [];
         this.maxTrail = 10;

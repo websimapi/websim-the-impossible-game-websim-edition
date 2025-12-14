@@ -31,7 +31,7 @@ export class AudioController {
     }
 
     playBgm(loop = true) {
-        if (this.bgmSource) this.bgmSource.stop();
+        this.stopBgm(); // Ensure clean stop
         if (!this.buffers['bgm']) return;
 
         this.bgmSource = this.ctx.createBufferSource();

@@ -81,7 +81,11 @@ function resetGame(fullReset = false) {
     
     player = new Player(100, groundY, "#ff9900");
     level = new Level(groundY);
-    cameraX = 0;
+    
+    // Initialize camera immediately to avoid jump cut
+    resize(); // Ensure dimensions are fresh
+    cameraX = player.x - width * 0.2;
+    
     particles = [];
     shakeTime = 0;
     
@@ -103,14 +107,21 @@ function startGame() {
     requestAnimationFrame(loop);
 }
 
+let deathTimeout = null;
+
 function die() {
+    if (currentState === STATE.GAMEOVER) return; // Prevent double death
+    
     currentState = STATE.GAMEOVER;
     audio.stopBgm();
     audio.playSfx('death');
     shakeTime = 20;
     createExplosion(player.x, player.y, player.color, 30);
     
-    setTimeout(() => {
+    if (deathTimeout) clearTimeout(deathTimeout);
+    
+    deathTimeout = setTimeout(() => {
+        if (currentState !== STATE.GAMEOVER) return; // Guard if manually reset
         // Quick restart logic
         resetGame(false);
         currentState = STATE.PLAYING;
@@ -280,10 +291,10 @@ function loop() {
             // Speed progression
             let score = Math.floor(player.x / 100);
             
-            // Increase speed slightly every 100m
-            // Base 6.0. Cap at 13.0
-            let targetSpeed = 6.0 + (score * 0.05);
-            if (targetSpeed > 13.0) targetSpeed = 13.0;
+            // Increase speed slowly. Start at 5.0
+            // Increment slower but infinite
+            let targetSpeed = 5.0 + (score * 0.01);
+            if (targetSpeed > 12.0) targetSpeed = 12.0; // Soft cap
             player.speed = targetSpeed;
 
             // Generate level
