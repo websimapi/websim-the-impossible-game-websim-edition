@@ -6,39 +6,38 @@ import { AudioController } from './audio.js';
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 let width, height;
+let groundY = 0; // keep groundY in sync with canvas height
 
 function resize() {
     const container = document.getElementById('game-container');
     const winW = window.innerWidth;
     const winH = window.innerHeight;
 
-    if (winH > winW) {
-        // Portrait mode - Rotate 90 degrees to enforce landscape
-        width = winH;
-        height = winW;
-        
-        container.style.width = `${winH}px`;
-        container.style.height = `${winW}px`;
-        container.style.position = 'absolute';
-        container.style.left = `${(winW - winH) / 2}px`;
-        container.style.top = `${(winH - winW) / 2}px`;
-        container.style.transform = 'rotate(90deg)';
-        container.style.transformOrigin = 'center center';
-    } else {
-        // Landscape mode - Native
-        width = winW;
-        height = winH;
-        
-        container.style.width = '100%';
-        container.style.height = '100%';
-        container.style.position = 'relative';
-        container.style.left = '0';
-        container.style.top = '0';
-        container.style.transform = 'none';
-    }
+    // Always use natural orientation: fill viewport, no rotation
+    width = winW;
+    height = winH;
+
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.position = 'relative';
+    container.style.left = '0';
+    container.style.top = '0';
+    container.style.transform = 'none';
+    container.style.transformOrigin = 'center center';
 
     canvas.width = width;
     canvas.height = height;
+
+    // Update ground position and sync existing entities
+    groundY = height * 0.7;
+    if (player) {
+        player.groundY = groundY;
+        // keep player on ground without changing x
+        player.y = groundY - player.size;
+    }
+    if (level) {
+        level.groundY = groundY;
+    }
 }
 window.addEventListener('resize', resize);
 resize();
@@ -67,7 +66,6 @@ const STATE = {
 };
 
 let currentState = STATE.MENU;
-let groundY = height * 0.75;
 let audio = new AudioController();
 
 // Entities
