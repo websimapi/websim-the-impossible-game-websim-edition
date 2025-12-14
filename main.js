@@ -281,9 +281,8 @@ function loop() {
             let score = Math.floor(player.x / 100);
             
             // Increase speed slightly every 100m
-            // Base 4.5. Cap at 13.0
-            // Slower ramp up for infinite play
-            let targetSpeed = 4.5 + (score * 0.04);
+            // Base 6.0. Cap at 13.0
+            let targetSpeed = 6.0 + (score * 0.05);
             if (targetSpeed > 13.0) targetSpeed = 13.0;
             player.speed = targetSpeed;
 

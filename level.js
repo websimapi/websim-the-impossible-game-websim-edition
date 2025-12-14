@@ -10,28 +10,19 @@ export const OBS = {
 
 // Procedural Patterns
 const PATTERNS = {
-    INTRO: [
-        "........", 
-        "........",
-        "....S...", 
-        ".......S",
-        "S.......",
-        ".....S.."
-    ],
     EASY: [
         "........",
         "....S...",
         "..S...S.",
         "...B....",
         "..B..B..",
-        "........"
+        "...P.P.."
     ],
     MEDIUM: [
         "..SS....",
         ".S.S.S..",
         ".B.S.B..",
         ".P.S.P..",
-        "...P.P..",
         "........",
         "...GG..."
     ],
@@ -59,9 +50,9 @@ export class Level {
         this.obstacles = [];
         this.currentX = 0; // The frontier of generation
         
-        // Initial safe zone - Longer for easier start
-        this.currentX = 500; 
-        this.addRawSegment(".".repeat(30)); 
+        // Initial safe zone
+        this.currentX = 500; // Start offset
+        this.addRawSegment(".".repeat(20)); // Safe start
     }
 
     update(cameraX, width, difficultyScore) {
@@ -80,24 +71,18 @@ export class Level {
     }
 
     generateChunk(difficulty) {
-        // difficulty is essentially current score (distance / 100)
-        let pool = PATTERNS.INTRO;
+        // Difficulty 0-100+
+        let pool = PATTERNS.EASY;
         
-        // Progressive difficulty curve
-        if (difficulty > 10) pool = PATTERNS.INTRO.concat(PATTERNS.EASY);
-        if (difficulty > 25) pool = PATTERNS.EASY.concat(PATTERNS.MEDIUM);
-        if (difficulty > 50) pool = PATTERNS.MEDIUM.concat(PATTERNS.HARD);
-        if (difficulty > 100) pool = PATTERNS.HARD.concat(PATTERNS.INSANE);
+        if (difficulty > 500) pool = pool.concat(PATTERNS.MEDIUM);
+        if (difficulty > 1500) pool = PATTERNS.MEDIUM.concat(PATTERNS.HARD);
+        if (difficulty > 3000) pool = PATTERNS.HARD.concat(PATTERNS.INSANE);
 
         // Pick random pattern
         const pattern = pool[Math.floor(Math.random() * pool.length)];
         
-        // Add a breather between patterns, shorter as game gets harder
-        let breather = "....";
-        if (difficulty > 50) breather = "..";
-        if (difficulty > 100) breather = ".";
-        
-        this.addRawSegment(breather); 
+        // Sometimes add a small breather between patterns
+        this.addRawSegment("..."); 
         this.addRawSegment(pattern);
     }
 

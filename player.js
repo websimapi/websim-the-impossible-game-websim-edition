@@ -7,7 +7,7 @@ export class Player {
 
         // Physics constants
         // Tuned for 140 BPM rhythm
-        this.baseSpeed = 4.5; // Easier start
+        this.baseSpeed = 6.0; // Slower start
         this.speed = this.baseSpeed;
         this.jumpForce = -13; 
         this.gravity = 0.65;
