@@ -36,7 +36,7 @@ export class Level {
             ..."P...P...P...".split(''),
             ..."P.S.P.S.P.".split(''),
             // Tricky part
-            ..".SS..SS..".split(''),
+            ...".SS..SS..".split(''),
             ..."B..B..B..".split(''),
             // The Gap
             ..."GGGG".split(''), // Big pit
@@ -52,7 +52,7 @@ export class Level {
             // Climax
             ..."S.S.B.B.P.P.S.S.".split(''),
             ..."GG.P.GG.P.".split(''),
-            ..."S.S.S.S.S.S.S.S.".split(''),
+            ..."S.S.S.S.S.M.S.S.".split(''),
             // Outro
             ..."................".split(''),
             "WIN"
