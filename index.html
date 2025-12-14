@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Impossible Game WebSim Edition</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div class="scanline-overlay">
+        
+        <div id="ui-layer">
+            <div id="stats-bar">
+                <div class="stat-box">Attempt: <span id="attempt-count">1</span></div>
+                <div class="progress-display"><span id="progress-percent">0</span>%</div>
+                <div class="stat-box">Best: <span id="best-percent">0</span>%</div>
+            </div>
+
+            <button id="pause-btn">||</button>
+
+            <!-- Start Screen -->
+            <div id="start-screen" class="modal visible">
+                <h1>IMPOSSIBLE CUBE</h1>
+                <p>Music Sync: ON</p>
+                <div class="controls-hint">Tap / Space to Jump</div>
+                <button id="start-btn" class="glow-btn">START GAME</button>
+            </div>
+
+            <!-- Pause Menu -->
+            <div id="pause-menu" class="modal hidden">
+                <h2>PAUSED</h2>
+                <button id="resume-btn" class="glow-btn">RESUME</button>
+                <button id="restart-btn" class="glow-btn">RESTART</button>
+                <div class="volume-control">
+                    <label>Volume</label>
+                    <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
+                </div>
+            </div>
+
+            <!-- Game Over / Victory Overlay (Dynamic) -->
+            <div id="message-overlay" class="modal hidden">
+                <h2 id="msg-title"></h2>
+                <p id="msg-stats"></p>
+                <button id="msg-btn" class="glow-btn">TRY AGAIN</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="main.js"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
