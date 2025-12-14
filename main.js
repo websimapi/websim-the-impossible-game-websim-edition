@@ -8,8 +8,35 @@ const ctx = canvas.getContext('2d');
 let width, height;
 
 function resize() {
-    width = window.innerWidth;
-    height = window.innerHeight;
+    const container = document.getElementById('game-container');
+    const winW = window.innerWidth;
+    const winH = window.innerHeight;
+
+    if (winH > winW) {
+        // Portrait mode - Rotate 90 degrees to enforce landscape
+        width = winH;
+        height = winW;
+        
+        container.style.width = `${winH}px`;
+        container.style.height = `${winW}px`;
+        container.style.position = 'absolute';
+        container.style.left = `${(winW - winH) / 2}px`;
+        container.style.top = `${(winH - winW) / 2}px`;
+        container.style.transform = 'rotate(90deg)';
+        container.style.transformOrigin = 'center center';
+    } else {
+        // Landscape mode - Native
+        width = winW;
+        height = winH;
+        
+        container.style.width = '100%';
+        container.style.height = '100%';
+        container.style.position = 'relative';
+        container.style.left = '0';
+        container.style.top = '0';
+        container.style.transform = 'none';
+    }
+
     canvas.width = width;
     canvas.height = height;
 }
@@ -291,9 +318,9 @@ function loop() {
             // Speed progression
             let score = Math.floor(player.x / 100);
             
-            // Increase speed slowly. Start at 5.0
+            // Increase speed slowly. Start at 4.5
             // Increment slower but infinite
-            let targetSpeed = 5.0 + (score * 0.01);
+            let targetSpeed = 4.5 + (score * 0.005);
             if (targetSpeed > 12.0) targetSpeed = 12.0; // Soft cap
             player.speed = targetSpeed;
 

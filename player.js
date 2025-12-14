@@ -7,7 +7,7 @@ export class Player {
 
         // Physics constants
         // Tuned for better playability
-        this.baseSpeed = 5.0; 
+        this.baseSpeed = 4.5; 
         this.speed = this.baseSpeed;
         this.jumpForce = -11.5; 
         this.gravity = 0.55;
